@@ -9,7 +9,7 @@ function Message({timestamp, message, user}) {
       <div className='message-info'>
         <h4>{user.displayName}
           <span className='message-timestamp'>
-            {new Date(timestamp?.toDate()).toUTCString()}
+            {new Date(parseInt(timestamp)).toDateString()}
           </span>
         </h4>
 

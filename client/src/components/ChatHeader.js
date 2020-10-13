@@ -1,4 +1,3 @@
-import { HelpRounded, PeopleAltRounded, SearchRounded } from '@material-ui/icons';
 import React from 'react'
 import '../styles/ChatHeader.css';
 import NotificationsIcon from '@material-ui/icons/Notifications';

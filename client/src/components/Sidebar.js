@@ -13,11 +13,18 @@ import SidebarChannel from './SidebarChannel';
 import { useSelector } from 'react-redux';
 import { selectUser } from '../features/userSlice';
 import db, { auth } from '../firebase';
+import axios from '../axios';
+import Pusher from 'pusher-js';
+
+const pusher = new Pusher('87a6cf7034d1284a73ed', {
+  cluster: 'us3'
+});
 
 function Sidebar() {
   const user = useSelector(selectUser);
   const [channels, setChannels] = useState([]);
 
+  /*
   useEffect(() => {
     db.collection('channels').onSnapshot(snapshot => 
       setChannels(
@@ -28,13 +35,44 @@ function Sidebar() {
       )
     );
   }, []);
+  */
 
+  const getChannels = () => {
+    axios.get('/get/channellist')
+      .then((res) => {
+        console.log(res.data);
+        setChannels(res.data)
+      })
+  }
+
+  useEffect(() => {
+    getChannels()
+
+    const channel = pusher.subscribe('channels');
+    channel.bind('newChannel', function(data) {
+      getChannels()
+    });
+
+  }, []);
+
+  /*
   const handleAddChannel = () => {
     const channelName = prompt("Enter new channel name");
 
     if (channelName) {
       db.collection('channels').add({
         channelName: channelName,
+      });
+    }
+  };
+*/
+
+  const handleAddChannel = () => {
+    const channelName = prompt("Enter new channel name");
+
+    if (channelName) {
+      axios.post('/new/channel', {
+        channelName: channelName
       });
     }
   };
@@ -58,8 +96,8 @@ function Sidebar() {
         </div>
 
         <div className='sidebar-channelsList'>
-          {channels.map(({ id, channel }) => (
-            <SidebarChannel key={id} id={id} channelName={channel.channelName}/>
+          {channels.map((channel) => (
+            <SidebarChannel key={channel.id} id={channel.id} channelName={channel.name}/>
           ))}
         </div>
 

@@ -11,6 +11,12 @@ import { selectUser } from '../features/userSlice';
 import { selectChannelId, selectChannelName } from '../features/appSlice';
 import db from '../firebase';
 import firebase from 'firebase';
+import axios from '../axios';
+import Pusher from 'pusher-js';
+
+const pusher = new Pusher('87a6cf7034d1284a73ed', {
+  cluster: 'us3'
+});
 
 function Chat() {
   const user = useSelector(selectUser);
@@ -19,6 +25,7 @@ function Chat() {
   const [input, setInput] = useState('');
   const [messages, setMessages] = useState([]);
 
+  /*
   useEffect(() => {
     if (channelId) {
       db
@@ -31,7 +38,27 @@ function Chat() {
       );
     }
   }, [channelId])
+  */
 
+  const getConversation = (channelId) => {
+    if (channelId) {
+      axios.get(`/get/conversation?id=${channelId}`).then((res) => {
+        setMessages(res.data[0].conversation)
+      })
+    }
+  }
+
+  useEffect(() => {
+    getConversation(channelId);
+
+    const channel = pusher.subscribe('conversation');
+    channel.bind('newMessage', function(data) {
+      getConversation(channelId)
+    });
+    
+  }, [channelId])
+
+  /*
   const sendMessage = e => {
     e.preventDefault();
 
@@ -43,6 +70,19 @@ function Chat() {
 
     setInput('');
   };
+*/
+
+  const sendMessage = (e) => {
+    e.preventDefault();
+
+    axios.post(`/new/message?id=${channelId}`, {
+      message: input,
+      timestamp: Date.now(),
+      user: user
+    })
+
+    setInput('')
+  }
 
   return (
     <div className='chat'>
